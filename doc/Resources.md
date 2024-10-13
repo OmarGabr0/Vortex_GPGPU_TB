@@ -1,9 +1,8 @@
 # Resources
 
-## Basics
+## NTT
 
-### RISC-V
-
+## RISC-V
 
 ### Vortex GPGPU
 - [Slides](https://drive.google.com/file/d/1A03905NXyEGKmnxCLy0or-UQf8AnCe8h/view?usp=drive_link)
@@ -12,6 +11,6 @@
     * https://github.com/vortexgpgpu/vortex/blob/master/docs/microarchitecture.md
     * https://drive.google.com/file/d/1SPbIkk7XN20XgbE1Hu1JsA4iN3XhJyJf/view?usp=drive_link
 
-## ISA Extension
+### ISA Extension
 
   
