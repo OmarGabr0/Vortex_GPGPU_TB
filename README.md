@@ -2,7 +2,7 @@
 
 ---
 Note:
-You can take a look at our resources and video tutorials, check out our [Resources.md](https://github.com/RISC-V-Based-Accelerators/ASU_GP25_RISC-V_MSM/blob/main/doc/Resources.md) file for more details.
+You can take a look at our resources and video tutorials, check out our [Resources.md](https://github.com/RISC-V-Based-Accelerators/Basic-Building-Blocks/blob/main/Resources.md) file for more details.
 ---
 ## Table of Contents
 
