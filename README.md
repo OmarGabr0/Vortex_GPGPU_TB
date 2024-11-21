@@ -1,7 +1,9 @@
 # FPGA-Based Hardware Acceleration of NTT with RISC-V ISA Customization
 
 ---
-
+Note:
+You can take a look at our resources and video tutorials, check out our [Resources.md](https://github.com/RISC-V-Based-Accelerators/ASU_GP25_RISC-V_MSM/blob/main/doc/Resources.md) file for more details.
+---
 ## Table of Contents
 
 - [Objective](#objective)
