@@ -29,9 +29,9 @@
 - Videos [[part 1](https://youtu.be/GJaQ8wZ8mkc?si=kovF8UyciUdIv4Kg)] [[part 2](https://youtu.be/Y7RCRoKY664?si=SOVA-Zf2fv4uVdoD)] [[part 3](https://youtu.be/_0q-TY7aUDo?si=y69dQdnCZdnZSJ6f)]
 - [Slides](https://drive.google.com/file/d/1grB03n7-dr5HMTHF5hcEnJZBaS3V2jIN/view?usp=drive_link) 
 
-#### Fetch Stage
+#### Fetch & Decode Stages
 
-#### Decode Stage
+- [Video](https://youtu.be/tYquUuPwFvw?si=mFLGbhAvnGgTjXu0)
 
 #### Issue Stage
 
