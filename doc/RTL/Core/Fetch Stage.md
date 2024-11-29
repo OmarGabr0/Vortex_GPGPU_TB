@@ -53,7 +53,7 @@ The fetch stage retrieves instructions from the instruction cache and buffers th
 |`data.instr`  | `[31:0]`                | Output    | Fetched instruction                                           |
 | `valid`      | `1 bit`                 | Input     | Fetch data is valid                                           |
 | `ready`      | `1 bit`                 | Input     | Decode stage is ready to receive data                         |
-|`Ibuf_pop`    | `1 bit`                 | Input     | [Signal](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/interfaces/VX_decode_if.sv#L57) from decode stage indicating that instruction buffer has popped an entry [Only when `L1_ENABLE` is set]|
+|`ibuf_pop`    | `1 bit`                 | Input     | [Signal](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/interfaces/VX_decode_if.sv#L57) from decode stage indicating that instruction buffer has popped an entry [Only when `L1_ENABLE` is not set]|
 
 ## Modules
 
@@ -131,7 +131,7 @@ A dual-port RAM is instantiated to write into (when issuing a request) and read 
 - **`raddr`**: The read address is the warp ID from the response (`assign {rsp_uuid, rsp_tag} = icache_bus_if.rsp_data.tag;`).
 - **`rdata`**: PC and thread mask to be sent to decode stage.
 
-### VX_pending_size (Optional: Only when L1 cache is enabled)
+### VX_pending_size (Optional: Only when L1 cache is disabled)
 
 ```verilog
 `ifndef L1_ENABLE
