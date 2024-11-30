@@ -4,9 +4,10 @@
 
 The fetch stage retrieves instructions from the instruction cache and buffers the program counter and thread mask while issuing cache requests. It ensures proper alignment of instructions with their respective warps and threads.
 
+
 ![Connections](./images/fetch.png)
 
-## Interfaces
+# Interfaces
 
 | Interface Name         | Description                                    |
 |------------------------|------------------------------------------------|
@@ -53,7 +54,7 @@ The fetch stage retrieves instructions from the instruction cache and buffers th
 |`data.instr`  | `[31:0]`                | Output    | Fetched instruction                                           |
 | `valid`      | `1 bit`                 | Input     | Fetch data is valid                                           |
 | `ready`      | `1 bit`                 | Input     | Decode stage is ready to receive data                         |
-|`ibuf_pop`    | `1 bit`                 | Input     | [Signal](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/interfaces/VX_decode_if.sv#L57) from decode stage indicating that instruction buffer has popped an entry [Only when `L1_ENABLE` is not set]|
+|`Ibuf_pop`    | `1 bit`                 | Input     | [Signal](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/interfaces/VX_decode_if.sv#L57) from decode stage indicating that instruction buffer has popped an entry [Only when `L1_ENABLE` is set]|
 
 ## Modules
 
@@ -82,7 +83,10 @@ The fetch stage retrieves instructions from the instruction cache and buffers th
     );
 ```
 
-A streaming buffer module is instatiated to buffer icache requests:
+
+
+A streaming buffer module is instatiated to manage the communication between schedule stage and requesting instructions from icache memory though fetch stage.
+
 
 - **`valid_in`**: Input data is only valid when the schedule data is valid and ibuffer is not full.
 - **`data_in`**: {Address to be fetched (PC), UUID, Warp ID}.
@@ -101,6 +105,10 @@ A streaming buffer module is instatiated to buffer icache requests:
 - **`req_data.byteen`**: All bytes of the memory word are enabled for access.
 - **`req_data.data`**: We are not writing to the memory.
 
+# how it work
+send PC, tag ,uuid of requested warp from schedule stage when schedule stage buffer ready to send data and save those data in the buffer till icache memory is ready to receive data.
+
+simuleniacly, saving request tag in next module (dp_ram).
 ### VX_dp_ram
 
 ```verilog
@@ -131,7 +139,15 @@ A dual-port RAM is instantiated to write into (when issuing a request) and read 
 - **`raddr`**: The read address is the warp ID from the response (`assign {rsp_uuid, rsp_tag} = icache_bus_if.rsp_data.tag;`).
 - **`rdata`**: PC and thread mask to be sent to decode stage.
 
-### VX_pending_size (Optional: Only when L1 cache is disabled)
+# how it work 
+when [elastice buffer](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/core/VX_schedule.sv#L350) in schedule stage is ready to send data (have data in buffer) and [req_buffer](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/core/VX_fetch.sv#L104) is not full and ready to receive data, 
+the write enable wire is set to `1` allowing dv_ram to store the tag (PC & thread mask) of requested warp
+
+icache response signal have the rsp_tag which is the read address (index) of db_ram
+
+then data (instruction) read from icache and tag read from db_ram are passed to decode stage. 
+
+### VX_pending_size (Optional: Only when L1 cache is enabled)
 
 ```verilog
 `ifndef L1_ENABLE
@@ -159,3 +175,12 @@ This module monitors the size of the instruction buffer (ibuffer) to prevent dea
 - **`incr`**: Incremented when a fetch request for the specific warp is fired.
 - **`decr`**: Decremented when an instruction is popped from the ibuffer.
 - **`ibuf_ready`**: Indicates whether the instruction buffer for the requested warp can accept new data. If L1 cache is enabled, `ibuf_ready` is always `1'b1`.
+
+
+## summary 
+The fetch stage needs ram to store the tags associated to the request sent to the icache to track the state of ongoing request and  match response to  the warp ,  so that it’s called tag ram
+
+Tags are the program counter (PC) and the thread mask (tmask), both are essential for managing warp execution.
+
+It always reads the current warp that is responsed by the Icache and write the tag of the new warp  requested from icache memory
+
