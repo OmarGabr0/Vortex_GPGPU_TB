@@ -2,12 +2,27 @@
 
 ## Overview
 
-The fetch stage retrieves instructions from the instruction cache and buffers the program counter and thread mask while issuing cache requests. It ensures proper alignment of instructions with their respective warps and threads.
+The fetch stage manages communication between the scheduling stage and the instruction cache (ICache) using a dual-port RAM module (**tag_store**) and a streaming buffer module (**VX_elastic_buffer**).  
 
+### Key Components and Workflow  
+
+1. **Tag RAM (tag_store)**:  
+   - A dual-port RAM module stores the **program counter (PC)** and **thread mask (tmask)**, collectively known as the **request tag**.  
+   - It tracks the ongoing requests, matching responses to the appropriate warp while updating its data as new requests are issued.  
+
+2. **VX_elastic_buffer**:  
+   - A streaming buffer temporarily stores warp request data from the scheduling stage until the ICache is ready to process it.  
+   - The buffer ensures proper alignment and synchronization of requests, including the **PC**, **UUID**, and **Warp ID**, while facilitating efficient data flow between stages.  
+
+3. **Workflow Summary**:  
+   - The scheduling stage sends the **PC**, **tag**, and **UUID** of the requested warp when ready.  
+   - These are buffered until the ICache is ready to accept the request, at which point the data is forwarded, and the tag is saved in the **tag_store** for tracking purposes.  
+
+This mechanism ensures seamless coordination between stages and efficient instruction fetching for warp execution.
 
 ![Connections](./images/fetch.png)
 
-# Interfaces
+## Interfaces
 
 | Interface Name         | Description                                    |
 |------------------------|------------------------------------------------|
@@ -54,11 +69,11 @@ The fetch stage retrieves instructions from the instruction cache and buffers th
 |`data.instr`  | `[31:0]`                | Output    | Fetched instruction                                           |
 | `valid`      | `1 bit`                 | Input     | Fetch data is valid                                           |
 | `ready`      | `1 bit`                 | Input     | Decode stage is ready to receive data                         |
-|`Ibuf_pop`    | `1 bit`                 | Input     | [Signal](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/interfaces/VX_decode_if.sv#L57) from decode stage indicating that instruction buffer has popped an entry [Only when `L1_ENABLE` is set]|
+|`ibuf_pop`    | `1 bit`                 | Input     | [Signal](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/interfaces/VX_decode_if.sv#L57) from decode stage indicating that instruction buffer has popped an entry [Only when L1 cache is disabled]|
 
 ## Modules
 
-### VX_elastic_buffer
+### VX_elastic_buffer  
 
 ```verilog
     assign req_tag = schedule_if.data.wid;
@@ -81,35 +96,37 @@ The fetch stage retrieves instructions from the instruction cache and buffers th
         .valid_out (icache_bus_if.req_valid),
         .ready_out (icache_bus_if.req_ready)
     );
-```
+```  
 
+The **VX_elastic_buffer** is a streaming buffer module designed to facilitate seamless communication between the scheduling stage and the instruction cache (ICache) through the fetch stage. Its primary function is to synchronize request signals and data flow, ensuring efficient interaction between pipeline stages.  
 
-
-A streaming buffer module is instatiated to manage the communication between schedule stage and requesting instructions from icache memory though fetch stage.
-
-
-- **`valid_in`**: Input data is only valid when the schedule data is valid and ibuffer is not full.
-- **`data_in`**: {Address to be fetched (PC), UUID, Warp ID}.
-- **`ready_in`**: Icache is ready to receive new requests.
-- The output signals (`data_out`, `valid_out`, `ready_out`) are input to the icache.
+- **`valid_in`**: Indicates when the input data is valid, contingent on the scheduling stage providing data and the instruction buffer being ready.  
+- **`data_in`**: Encodes the program counter (PC), UUID, and Warp ID for the requested instruction.  
+- **`ready_in`**: Signals the readiness of the ICache to accept new requests.  
+- Output signals (`data_out`, `valid_out`, `ready_out`) ensure that buffered data is transferred to the ICache when ready.  
 
 ```verilog
     assign icache_bus_if.req_data.flags  = '0;
     assign icache_bus_if.req_data.rw     = 0;
     assign icache_bus_if.req_data.byteen = '1;
     assign icache_bus_if.req_data.data   = '0;
-```
+```  
 
-- **`req_data.flags`**: No special flags are needed.
-- **`req_data.rw`**: Read operation only.
-- **`req_data.byteen`**: All bytes of the memory word are enabled for access.
-- **`req_data.data`**: We are not writing to the memory.
+Additional configurations for the ICache request:  
+- **`req_data.flags`**: No special flags are required.
+- **`req_data.rw`**: Configured for read operations exclusively.  
+- **`req_data.byteen`**: Enables access to all bytes of the memory word.  
+- **`req_data.data`**: Not used for memory writes in this operation.  
 
-# how it work
-send PC, tag ,uuid of requested warp from schedule stage when schedule stage buffer ready to send data and save those data in the buffer till icache memory is ready to receive data.
+### Operational Overview  
 
-simuleniacly, saving request tag in next module (dp_ram).
-### VX_dp_ram
+1. The scheduling stage initiates the process by sending the program counter (PC), tag, and UUID of the requested warp when its internal buffer is ready.  
+2. These details are temporarily stored in the **VX_elastic_buffer** until the ICache signals its readiness to receive the request.  
+3. Simultaneously, the request tag is written into the **dp_ram** module to track ongoing requests and ensure correct response matching with the corresponding warp.  
+
+This mechanism ensures robust synchronization and precise tracking of requests, enabling efficient instruction fetching and warp management within the pipeline.  
+
+### VX_dp_ram  
 
 ```verilog
     wire icache_req_fire = icache_req_valid && icache_req_ready;
@@ -129,25 +146,25 @@ simuleniacly, saving request tag in next module (dp_ram).
         .raddr (rsp_tag),
         .rdata ({rsp_PC, rsp_tmask})
     );
-```
+```  
 
-A dual-port RAM is instantiated to write into (when issuing a request) and read from (when icache responds) the PC & thread mask of each requested warp.
+The **VX_dp_ram** is a dual-port RAM module used to store and retrieve the program counter (PC) and thread mask for each warp during instruction fetching. It enables efficient tracking of ongoing requests and associating responses to the correct warp.  
 
-- **`write`**: Asserted when data is valid from schedule stage and the icache is ready for new requests.
-- **`waddr`**: The write address is the requested warp ID (`assign req_tag = schedule_if.data.wid;`).
-- **`wdata`**: PC and thread mask from schedule stage.
-- **`raddr`**: The read address is the warp ID from the response (`assign {rsp_uuid, rsp_tag} = icache_bus_if.rsp_data.tag;`).
-- **`rdata`**: PC and thread mask to be sent to decode stage.
+- **`write`**: Asserted when the scheduling stage provides valid data, and the ICache is ready to accept a new request.  
+- **`waddr`**: Write address corresponds to the warp ID of the request (`req_tag`).  
+- **`wdata`**: Includes the program counter (PC) and thread mask from the scheduling stage.  
+- **`raddr`**: Read address is derived from the warp ID in the response (`rsp_tag`).  
+- **`rdata`**: Outputs the PC and thread mask for the decode stage.  
 
-# how it work 
-when [elastice buffer](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/core/VX_schedule.sv#L350) in schedule stage is ready to send data (have data in buffer) and [req_buffer](https://github.com/RISC-V-Based-Accelerators/vortex/blob/ce1396346e2f69a569352fda6f490dd7dad13056/hw/rtl/core/VX_fetch.sv#L104) is not full and ready to receive data, 
-the write enable wire is set to `1` allowing dv_ram to store the tag (PC & thread mask) of requested warp
+### Operational Overview  
 
-icache response signal have the rsp_tag which is the read address (index) of db_ram
+1. When the elastic buffer in the scheduling stage has data ready to send, and the request buffer in the fetch stage is not full, the write enable signal (`write`) is asserted. This allows the **VX_dp_ram** to store the PC and thread mask (tag) of the requested warp at the specified warp ID (`req_tag`).  
+2. Upon receiving a response from the ICache, the response tag (`rsp_tag`) serves as the read address to access the stored tag.  
+3. The instruction fetched from the ICache and the corresponding tag retrieved from the **VX_dp_ram** are forwarded to the decode stage for processing.  
 
-then data (instruction) read from icache and tag read from db_ram are passed to decode stage. 
+This design ensures seamless synchronization between warp requests and responses, maintaining the integrity of instruction execution.
 
-### VX_pending_size (Optional: Only when L1 cache is enabled)
+### VX_pending_size (Optional: Only when L1 Cache is Disabled)  
 
 ```verilog
 `ifndef L1_ENABLE
@@ -167,20 +184,21 @@ then data (instruction) read from icache and tag read from db_ram are passed to 
 `else
     wire ibuf_ready = 1'b1;
 `endif
-```
+```  
 
-This module monitors the size of the instruction buffer (ibuffer) to prevent deadlocks caused by memory contention between the instruction and data caches.
+The **VX_pending_size** module manages the size of the instruction buffer (ibuffer) for each warp, ensuring that memory contention between the instruction and data caches does not cause deadlocks.  
 
-- **`pending_ibuf_full`**: Tracks whether the ibuffer for each warp is full.
-- **`incr`**: Incremented when a fetch request for the specific warp is fired.
-- **`decr`**: Decremented when an instruction is popped from the ibuffer.
-- **`ibuf_ready`**: Indicates whether the instruction buffer for the requested warp can accept new data. If L1 cache is enabled, `ibuf_ready` is always `1'b1`.
+- **`pending_ibuf_full`**: Indicates whether the instruction buffer for each warp is full.  
+- **`incr`**: Incremented when a fetch request is issued for the corresponding warp.  
+- **`decr`**: Decremented when an instruction is removed (popped) from the ibuffer.  
+- **`ibuf_ready`**: Signals whether the instruction buffer for the current warp can accept new data. If L1 cache is enabled, `ibuf_ready` is hardcoded to `1'b1`.  
 
+### Operational Overview  
 
-## summary 
-The fetch stage needs ram to store the tags associated to the request sent to the icache to track the state of ongoing request and  match response to  the warp ,  so that it’s called tag ram
+1. For each warp, **VX_pending_size** tracks the number of instructions stored in the ibuffer.  
+2. When a fetch request is issued (`icache_req_fire`), the buffer count for the respective warp is incremented.  
+3. When an instruction is processed and removed (`ibuf_pop`), the buffer count is decremented.  
+4. The `ibuf_ready` signal ensures that new fetch requests are only issued if the instruction buffer for the active warp is not full.  
+5. If L1 caching is enabled, this functionality is bypassed, and `ibuf_ready` is always asserted, as memory contention management is not required.  
 
-Tags are the program counter (PC) and the thread mask (tmask), both are essential for managing warp execution.
-
-It always reads the current warp that is responsed by the Icache and write the tag of the new warp  requested from icache memory
-
+This mechanism optimizes warp execution flow by preventing stalls due to buffer overflow.
