@@ -41,7 +41,7 @@ Decoding stage responsible for interpreting the binary instruction fetched from 
 | `ibuf_pop`       | `NUM_WARPS bits`             | Input     | (Optional) Controls popping of the instruction buffer, included only if `L1_ENABLE` is not defined. |
 
 ##### Visual explaination 
-![alt text](image-1.png)
+![alt text](https://github.com/RISC-V-Based-Accelerators/ASU_GP25_RISC-V_NTT/blob/main/doc/RTL/Core/images/args.png)
 #### Breaking down of options
 ##### ALU Args
 
@@ -210,7 +210,7 @@ first multiblixur
 ```verilog 
 case (opcode)
 ```
-![alt text](image-3.png)
+![alt text](https://github.com/RISC-V-Based-Accelerators/ASU_GP25_RISC-V_NTT/blob/main/doc/RTL/Core/images/flowchart.png)
 
 ###  I-Type
 ``` verilog 
