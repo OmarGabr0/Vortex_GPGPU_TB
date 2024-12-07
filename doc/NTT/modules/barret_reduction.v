@@ -14,6 +14,10 @@ reg [data_size-1 : 0] r ;
 integer i ;
 
 always @(*) begin
+if (X_reg < prime_number) begin
+	X_reduction = X_reg ;
+end
+else begin
 	q = X_reg >> no_of_bits_of_prime_no ;
 	q_bar = (q*factor_approximate_div) >> no_of_bits_of_prime_no ;
 	r = X_reg - (q_bar * prime_number) ;
@@ -21,6 +25,8 @@ always @(*) begin
 		r = r - prime_number ;
 	end
 	X_reduction = r ;
+end
+
 end
 
 always @(posedge clk or negedge rst) begin
