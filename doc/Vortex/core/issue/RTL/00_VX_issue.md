@@ -1,5 +1,7 @@
 # VX_issue
 
+This is the top module for issue stage, and [VX_issue_slice](../RTL/VX_issue_slice.md) is next in the hierarchy.
+
 ## Parameters
 
 | Parameter      | Default Value                        | Description                                                                 |

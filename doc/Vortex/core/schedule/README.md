@@ -28,7 +28,7 @@ Modern GPUs employ the Single-Instruction Multiple-Thread (SIMT) execution model
 
 Recall that each warp has 32 threads moving in a lockstep executing the same instruction. However, **Branch Divergence** happens when there is a condition on a certain thread within a warp so that each thread can follow different execution paths.  The approach used is to serialize execution of threads following different paths within a given warp as shown below.
 
-![Serialize](../../images/schedule/serialize.png)
+![Serialize](../images/schedule/serialize.png)
 
 To achieve this serialization of divergent code paths, a **SIMT stack** is used.  Each entry on this stack contains three entries:
 
@@ -80,6 +80,6 @@ do {
   - Stack operates in **last-in, first-out (LIFO)** order.  
   - The path with more active threads is usually pushed last for efficiency.
 
-![SIMT](../../images/schedule/simt.png)
+![SIMT](../images/schedule/simt.png)
 
 #### Barriers

@@ -1,13 +1,11 @@
 # VX_issue_slice
 
-![Issue Slice](../../images/issue/issue_slice.png)
-
 Each slice instantiates:
 
 - [**VX_ibuffer**](../RTL/VX_ibuffer.md)
-- [**VX_scoreboard**](../RTL/VX_scoreboard.md)
-- [**VX_operands**](../RTL/VX_operands.md)
-- [**VX_dispatch**](../RTL/VX_dispatch.md)
+- [**VX_scoreboard**]()
+- [**VX_operands**]()
+- [**VX_dispatch**]()
 
 ```verilog
    VX_ibuffer_if ibuffer_if [PER_ISSUE_WARPS]();
