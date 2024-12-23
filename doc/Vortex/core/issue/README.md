@@ -24,7 +24,7 @@ The total number of warps is divided into slices, where each slice is equal to 8
 
 ### Instruction Buffer
 
-The instruction buffer is a FIFO (First-In, First-Out) structure that holds multiple decoded instructions, allowing the scheduler to pick instructions that have no dependencies. This helps improve the flow of instructions through the pipeline. The instruction buffer also helps reduce delays caused by instruction cache misses by working with instruction miss-status holding registers (MSHRs), making sure that memory delays don't slow down the pipeline too much.
+The instruction buffer is a FIFO (First-In, First-Out) structure that holds multiple decoded instructions, allowing multiple instruction to be stored in case if the instruction will cause hazards. This helps improve the flow of instructions through the pipeline. The instruction buffer also helps reduce delays caused by instruction cache misses by working with instruction miss-status holding registers (MSHRs), making sure that memory delays don't slow down the pipeline too much.
 
 ### Scoreboard
 
@@ -34,3 +34,9 @@ The scoreboard manages data dependencies between instructions in a GPU core. It 
 - **WAW hazards** are avoided by ensuring that two instructions do not write to the same register simultaneously. The scoreboard tracks which instructions are writing to each register and stalls any subsequent instructions that attempt to write to the same register before the previous write is completed.
 
 ### Operand Collector
+
+The operand collector retrieves source operands for instructions from the instruction buffer by interacting with the scoreboard and general-purpose registers (GPRs). It ensures that operands are fetched only when their data is ready, preventing unnecessary delays. To support parallel accesses, the collector uses a multi-bank GPR design and incorporates arbitration to resolve bank conflicts. This approach ensures efficient operand delivery to the execution units. By resolving data hazards and preparing operands, the collector helps maintain a smooth data flow, minimizing pipeline stalls and improving overall performance.
+
+### Dispatch
+
+It is responsible for dispatching operands to execution units in a GPU pipeline. It interfaces with the operand collector to fetch data and ensures that operands are ready before forwarding them to the appropriate execution unit. Each execution unit has an associated skid buffer, which temporarily holds operands to resolve pipeline hazards and maintain a steady flow of data.

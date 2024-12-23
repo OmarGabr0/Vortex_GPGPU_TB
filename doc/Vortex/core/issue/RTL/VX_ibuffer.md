@@ -22,6 +22,8 @@
 | [`NUM_REGS`](https://github.com/vortexgpgpu/vortex/blob/main/hw/rtl/VX_define.vh#L42)     | `NUM_IREGS` or `2 * NUM_IREGS`      | Total number of registers, including floating-point, if `EXT_F_ENABLE` is set. |
 | [`NR_BITS`](https://github.com/vortexgpgpu/vortex/blob/main/hw/rtl/VX_define.vh#L45)      | `CLOG2(NUM_REGS)`                   | Number of bits required to address all registers.                          |
 | [`IBUF_SIZE`](https://github.com/vortexgpgpu/vortex/blob/01974e124f114489844f148c43db00fe14e187ae/hw/rtl/VX_config.vh#L389)      | 4                   | The FIFO depth for the instruction buffer                          |
+| [`PER_ISSUE_WARPS`](https://github.com/vortexgpgpu/vortex/blob/01974e124f114489844f148c43db00fe14e187ae/hw/rtl/VX_gpu_pkg.sv#L260)      | 8                   | NUmber of warps per slice    |
+| `DATAW`      | `UUID_WIDTH` + NUM_THREADS + `PC_BITS + 1` + EX_BITS + `INST_OP_BITS` + INST_ARGS_BITS + (`NR_BITS * 4)                   | Data width   |
 
 ```verilog
     wire [PER_ISSUE_WARPS-1:0] ibuf_ready_in;
