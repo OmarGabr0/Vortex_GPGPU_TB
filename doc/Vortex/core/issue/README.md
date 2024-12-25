@@ -7,15 +7,12 @@ The **Issue Stage** introduces a second and third scheduling mechanism to effici
 ### Responsibilities
 
 1. **Instruction Buffer Management**:  
-   Stores multiple instructions fetched from memory which enables the scheduler to select from several instructions for issuing, improving warp-level throughput.
+   Stores multiple instructions fetched from memory to prevent stalling when there is a dpendency.
 
 2. **Dependency Tracking**:  
    Utilizes the scoreboard to identify and manage data and structural hazards between instructions, ensuring that issued instructions do not introduce pipeline hazards. This tracking allows overlapping the execution of instructions within the same warp.
 
-3. **Instruction Selection**:  
-   Selects eligible instructions from the instruction buffer for issuing based on readiness, dependency clearance, and resource availability. This step ensures efficient pipeline utilization and minimizes stalls.
-
-4. **Operand Access Optimization**:  
+3. **Operand Access Optimization**:  
    Relies on the operand collector to increase parallelism by maximizing register bank hits. This reduces access contention and improves throughput for source operands during instruction execution.
 
 ## Structure

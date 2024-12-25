@@ -29,6 +29,8 @@ This is the top module for issue stage, and [VX_issue_slice](../RTL/VX_issue_sli
 
 ## Interfaces and Ports
 
+![Issue](../../images/issue/issue_top.png)
+
 ### Decode Interface (`decode_if`)
 
 | Port Name   | Width                  | Direction | Description                                      |
