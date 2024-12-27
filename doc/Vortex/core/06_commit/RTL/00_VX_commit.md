@@ -17,7 +17,7 @@
 
 ## Interfaces and Ports
 
-![commit](../images/commit/commit.png)
+![commit](../../images/commit/commit.png)
 
 ### Commit Interface
 
