@@ -12,4 +12,3 @@ The `VX_execute` module is a core component of the pipeline responsible for mana
   - **FPU Unit** (optional): Executes floating-point operations if enabled.
 - Compatible with configurable execution widths (`ISSUE_WIDTH`).
 - Provides a comprehensive set of interfaces for dispatch, commit, memory, and control.
-- Integrates performance tracking when enabled.
