@@ -142,29 +142,33 @@ logic                         m_axi_bready_d1       ; // [AXI_NUM_BANKS];
             from_r2 = (!m_axi_araddr[31] && m_axi_araddr[16]) ? 1 : 0;
       end
 */
-always @(*) begin 
+//always @(*) begin
+//////////////////////////////// using to from mwthod /////////////////////////////////////
+
+always @(posedge clk) begin   
     to_r1   = 0;
     from_r1 = 0;
     to_r2   = 0;
     from_r2 = 0;
     
-    if (m_axi_awaddr[31]) 
+    if (m_axi_awaddr[31])  // 0x8000_0000
         to_r1 = 1;
-    if (m_axi_araddr[31]) 
+    if (m_axi_araddr[31]) // 0x8000_0000
         from_r1 = 1;
 
-    if (!m_axi_awaddr[31] && m_axi_awaddr[16]) 
+    if (!m_axi_awaddr[31] && m_axi_awaddr[16]) // 0x12000 and not 0x8000_0000
         to_r2 = 1;
-    if (!m_axi_araddr[31] && m_axi_araddr[16]) 
+    if (!m_axi_araddr[31] && m_axi_araddr[16]) // 0x12000 and not 0x8000_0000
         from_r2 = 1;
 end
 /////////////////////////// Try2: Only Valid & ready signal is important /////////////////////////////////////////////////////////////
 ////////////////////////////////
 //decoding slave output 
-always @(*) begin 
+always @(*) begin
+//always @(posedge clk) begin  
     case ( {to_r1||from_r1 , to_r2||from_r2})
      2'b10 : begin 
-            m_axi_awready [0] =  packed_awready0  ;
+            m_axi_awready [0] =  packed_awready0   ;
             m_axi_wready  [0]  =  packed_wready0   ;
             m_axi_bvalid  [0]  =  packed_bvalid0   ;  
             m_axi_bid     [0]  =  packed_bid0      ;
@@ -273,8 +277,122 @@ always @(*) begin
 
 end
  
+/*
+ //////////////////////////////// using direct register bits values /////////////////////////////////////
+
+ always @(posedge clk) begin  
+    case ( {m_axi_awaddr[31]||m_axi_araddr , (!m_axi_awaddr[31] && m_axi_awaddr[16])||(!m_axi_araddr[31] && m_axi_araddr[16])})
+     2'b10 : begin 
+            m_axi_awready [0] =  packed_awready0  ;
+            m_axi_wready  [0]  =  packed_wready0   ;
+            m_axi_bvalid  [0]  =  packed_bvalid0   ;  
+            m_axi_bid     [0]  =  packed_bid0      ;
+            m_axi_bresp   [0]  =  packed_bresp0    ;
+            m_axi_arready [0]  =  packed_arready0  ;    
+            m_axi_rvalid  [0]  =  packed_rvalid0   ;  
+            m_axi_rdata   [0]  =  packed_rdata0    ; 
+            m_axi_rlast   [0]  =  packed_rlast0    ; 
+            m_axi_rid     [0]  =  packed_rid0      ;
+            m_axi_rresp   [0]  =  packed_rresp0    ;
+     end
+     2'b01: begin 
+            m_axi_awready [0]  =  packed_awready1  ;
+            m_axi_wready  [0]  =  packed_wready1   ;
+            m_axi_bvalid  [0]  =  packed_bvalid1   ;  
+            m_axi_bid     [0]  =  packed_bid1      ;
+            m_axi_bresp   [0]  =  packed_bresp1    ;
+            m_axi_arready [0]  =  packed_arready1  ;    
+            m_axi_rvalid  [0]  =  packed_rvalid1   ;  
+            m_axi_rdata   [0]  =  packed_rdata1    ; 
+            m_axi_rlast   [0]  =  packed_rlast1    ; 
+            m_axi_rid     [0]  =  packed_rid1      ;
+            m_axi_rresp   [0]  =  packed_rresp1    ;
+     end
+     default:  begin 
+            m_axi_awready  [0]  =  packed_awready0  ;
+            m_axi_wready   [0]  =  packed_wready0   ;
+            m_axi_bvalid   [0]  =  packed_bvalid0   ;  
+            m_axi_bid      [0]  =  packed_bid0      ;
+            m_axi_bresp    [0]  =  packed_bresp0    ;
+            m_axi_arready  [0]  =  packed_arready0  ;    
+            m_axi_rvalid   [0]  =  packed_rvalid0   ;  
+            m_axi_rdata    [0]  =  packed_rdata0    ; 
+            m_axi_rlast    [0]  =  packed_rlast0    ; 
+            m_axi_rid      [0]  =  packed_rid0      ;
+            m_axi_rresp    [0]  =  packed_rresp0    ;
+     end
+    endcase
+// Read request + read data handling 
+    case({m_axi_araddr,(!m_axi_araddr[31] && m_axi_araddr[16])}) 
+    2'b10: begin 
+            /// read request channel 
+        m_axi_arvalid_d = m_axi_arvalid [0]  ;
+        m_axi_arvalid_d1 = 'b0 ;
+           // reaed response channel 
+        m_axi_rready_d =m_axi_rready[0]   ;
+        m_axi_rready_d1 ='b0 ;
+    end
+   2'b01: begin 
+
+            /// read request channel 
+        m_axi_arvalid_d1 =m_axi_arvalid [0]  ;
+        m_axi_arvalid_d  = 'b0 ;
+
+           // read response channel 
+        m_axi_rready_d1 =m_axi_rready  [0] ;
+        m_axi_rready_d  ='b0 ;
+   end
+   default: begin 
+       /// read request channel 
+        m_axi_arvalid_d =m_axi_arvalid [0]  ;
+        m_axi_arvalid_d1  = 'b0 ;
+           // reaed response channel 
+        m_axi_rready_d =m_axi_rready [0]  ;
+        m_axi_rready_d1  ='b0 ;
+   end 
+    endcase
+ // Write request + write response +write data handling    
+     case({m_axi_awaddr[31],(!m_axi_awaddr[31] && m_axi_awaddr[16])}) 
+     2'b10: begin 
+            /// write request channel
+            m_axi_awvalid_d = m_axi_awvalid [0]  ; 
+            m_axi_awvalid_d1  = 'b0; 
+              // write data channel 
+            m_axi_wvalid_d =m_axi_wvalid [0]  ; 
+            m_axi_wvalid_d1  = 'b0 ; 
+              // write rtesponse 
+            m_axi_bready_d =m_axi_bready [0]  ;
+            m_axi_bready_d1   ='b0 ;
+     end
+    2'b01: begin 
+               /// write request channel
+            m_axi_awvalid_d1 = m_axi_awvalid [0]  ; 
+            m_axi_awvalid_d  = 'b0; 
+              // write data channel 
+            m_axi_wvalid_d1 =m_axi_wvalid [0]  ; 
+            m_axi_wvalid_d  = 'b0 ; 
+              // write rtesponse 
+            m_axi_bready_d1 =m_axi_bready [0]  ;
+            m_axi_bready_d  ='b0 ;
+     end
+ default: begin 
+            /// write request channel
+            m_axi_awvalid_d = m_axi_awvalid [0]  ; 
+            m_axi_awvalid_d1 = 'b0; 
+              // write data channel 
+            m_axi_wvalid_d =m_axi_wvalid [0]  ; 
+            m_axi_wvalid_d1 = 'b0 ; 
+              // write rtesponse 
+            m_axi_bready_d =m_axi_bready [0]  ;
+            m_axi_bready_d1 ='b0 ;
+ end
+
+ endcase
+
+
+end
    
-      
+ */     
       
 
 
