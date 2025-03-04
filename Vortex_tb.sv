@@ -199,7 +199,7 @@ module tb_vortex_axi ;
         integer dst_addr     = 32'h11000;   // Destination buffer address
         integer kernel_arg   = 32'h12000;
         // decode.ram1.mem[32'h12000]=512'h00100;
-        decode.ram1.mem[32'h12000]=512'hbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00d000000000001040000000000000100000000000000000100;
+        decode.ram1.mem[24'h12000]=512'h0baadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00d000000000001040000000000000100000000000000000100;
        // decode.ram0.mem[32'h12000]=512'hbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00d000000000001040000000000000100000000000000000100;
         load_kernel("instructions_corrected.txt", startup_addr);
         #5 
