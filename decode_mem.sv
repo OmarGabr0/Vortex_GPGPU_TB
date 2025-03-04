@@ -128,24 +128,9 @@ logic                         m_axi_bready_d1       ; // [AXI_NUM_BANKS];
 
   reg from_r1,to_r1,from_r2,to_r2;
 ///////////////////////////////////
-/////// first Trail : Using olny 2 rams , one for kernal and other for arg,src,dest
-/////// each ram would have memory address  masked to 000000000
-/* 
-      always @(*) begin 
-             // 80,000,000  --> AXI_ADDR_WIDTH-1 =1 
-             // kernal ram
-             to_r1   = (m_axi_awaddr[31]) ? 1 : 0;
-             from_r1 = (m_axi_araddr[31]) ? 1 : 0;
-            // 0x10000 
-            //kernal arg ram 
-             to_r2   = (!m_axi_awaddr[31] && m_axi_awaddr[16]) ? 1 : 0;
-            from_r2 = (!m_axi_araddr[31] && m_axi_araddr[16]) ? 1 : 0;
-      end
-*/
-//always @(*) begin
 //////////////////////////////// using to from mwthod /////////////////////////////////////
 
-always @(posedge clk) begin   
+always @(*) begin   
     
     if (m_axi_awaddr[0][31])  // 0x8000_0000
         to_r1 = 1;
@@ -184,6 +169,26 @@ always @(*) begin
             m_axi_rlast   [0]  =  packed_rlast0    ; 
             m_axi_rid     [0]  =  packed_rid0      ;
             m_axi_rresp   [0]  =  packed_rresp0    ;
+
+        /// read request channel 
+            m_axi_arvalid_d = m_axi_arvalid [0]  ;
+            m_axi_arvalid_d1 = 'b0 ;
+        // reaed response channel 
+            m_axi_rready_d =m_axi_rready[0]   ;
+            m_axi_rready_d1 ='b0 ;
+      //////////////////////////////////////////////
+                  /// write request channel
+            m_axi_awvalid_d = m_axi_awvalid [0]  ; 
+            m_axi_awvalid_d1  = 'b0; 
+              // write data channel 
+            m_axi_wvalid_d =m_axi_wvalid [0]  ; 
+            m_axi_wvalid_d1  = 'b0 ; 
+              // write rtesponse 
+            m_axi_bready_d =m_axi_bready [0]  ;
+            m_axi_bready_d1   ='b0 ;
+
+
+
      end
      2'b01: begin 
             m_axi_awready [0]  =  packed_awready1  ;
@@ -197,65 +202,17 @@ always @(*) begin
             m_axi_rlast   [0]  =  packed_rlast1    ; 
             m_axi_rid     [0]  =  packed_rid1      ;
             m_axi_rresp   [0]  =  packed_rresp1    ;
-     end
-     default:  begin 
-            m_axi_awready  [0]  =  packed_awready0  ;
-            m_axi_wready   [0]  =  packed_wready0   ;
-            m_axi_bvalid   [0]  =  packed_bvalid0   ;  
-            m_axi_bid      [0]  =  packed_bid0      ;
-            m_axi_bresp    [0]  =  packed_bresp0    ;
-            m_axi_arready  [0]  =  packed_arready0  ;    
-            m_axi_rvalid   [0]  =  packed_rvalid0   ;  
-            m_axi_rdata    [0]  =  packed_rdata0    ; 
-            m_axi_rlast    [0]  =  packed_rlast0    ; 
-            m_axi_rid      [0]  =  packed_rid0      ;
-            m_axi_rresp    [0]  =  packed_rresp0    ;
-     end
-    endcase
-// Read request + read data handling 
-    case({from_r1,from_r2}) 
-    2'b10: begin 
-            /// read request channel 
-        m_axi_arvalid_d = m_axi_arvalid [0]  ;
-        m_axi_arvalid_d1 = 'b0 ;
-           // reaed response channel 
-        m_axi_rready_d =m_axi_rready[0]   ;
-        m_axi_rready_d1 ='b0 ;
-    end
-   2'b01: begin 
 
-            /// read request channel 
+                        /// read request channel 
         m_axi_arvalid_d1 =m_axi_arvalid [0]  ;
         m_axi_arvalid_d  = 'b0 ;
 
            // read response channel 
         m_axi_rready_d1 =m_axi_rready  [0] ;
         m_axi_rready_d  ='b0 ;
-   end
-   default: begin 
-       /// read request channel 
-        m_axi_arvalid_d =m_axi_arvalid [0]  ;
-        m_axi_arvalid_d1  = 'b0 ;
-           // reaed response channel 
-        m_axi_rready_d =m_axi_rready [0]  ;
-        m_axi_rready_d1  ='b0 ;
-   end 
-    endcase
- // Write request + write response +write data handling    
-     case({to_r1,to_r2}) 
-     2'b10: begin 
-            /// write request channel
-            m_axi_awvalid_d = m_axi_awvalid [0]  ; 
-            m_axi_awvalid_d1  = 'b0; 
-              // write data channel 
-            m_axi_wvalid_d =m_axi_wvalid [0]  ; 
-            m_axi_wvalid_d1  = 'b0 ; 
-              // write rtesponse 
-            m_axi_bready_d =m_axi_bready [0]  ;
-            m_axi_bready_d1   ='b0 ;
-     end
-    2'b01: begin 
-               /// write request channel
+      ///////////////////////////////////////////
+
+             /// write request channel
             m_axi_awvalid_d1 = m_axi_awvalid [0]  ; 
             m_axi_awvalid_d  = 'b0; 
               // write data channel 
@@ -264,31 +221,10 @@ always @(*) begin
               // write rtesponse 
             m_axi_bready_d1 =m_axi_bready [0]  ;
             m_axi_bready_d  ='b0 ;
+
      end
- default: begin 
-            /// write request channel
-            m_axi_awvalid_d = m_axi_awvalid [0]  ; 
-            m_axi_awvalid_d1 = 'b0; 
-              // write data channel 
-            m_axi_wvalid_d =m_axi_wvalid [0]  ; 
-            m_axi_wvalid_d1 = 'b0 ; 
-              // write rtesponse 
-            m_axi_bready_d =m_axi_bready [0]  ;
-            m_axi_bready_d1 ='b0 ;
- end
-
- endcase
-
-
-end
- 
-/*
- //////////////////////////////// using direct register bits values /////////////////////////////////////
-
- always @(posedge clk) begin  
-    case ( {m_axi_awaddr[31]||m_axi_araddr , (!m_axi_awaddr[31] && m_axi_awaddr[16])||(!m_axi_araddr[31] && m_axi_araddr[16])})
-     2'b10 : begin 
-            m_axi_awready [0] =  packed_awready0  ;
+     default:  begin 
+            m_axi_awready [0] =  packed_awready0   ;
             m_axi_wready  [0]  =  packed_wready0   ;
             m_axi_bvalid  [0]  =  packed_bvalid0   ;  
             m_axi_bid     [0]  =  packed_bid0      ;
@@ -299,67 +235,15 @@ end
             m_axi_rlast   [0]  =  packed_rlast0    ; 
             m_axi_rid     [0]  =  packed_rid0      ;
             m_axi_rresp   [0]  =  packed_rresp0    ;
-     end
-     2'b01: begin 
-            m_axi_awready [0]  =  packed_awready1  ;
-            m_axi_wready  [0]  =  packed_wready1   ;
-            m_axi_bvalid  [0]  =  packed_bvalid1   ;  
-            m_axi_bid     [0]  =  packed_bid1      ;
-            m_axi_bresp   [0]  =  packed_bresp1    ;
-            m_axi_arready [0]  =  packed_arready1  ;    
-            m_axi_rvalid  [0]  =  packed_rvalid1   ;  
-            m_axi_rdata   [0]  =  packed_rdata1    ; 
-            m_axi_rlast   [0]  =  packed_rlast1    ; 
-            m_axi_rid     [0]  =  packed_rid1      ;
-            m_axi_rresp   [0]  =  packed_rresp1    ;
-     end
-     default:  begin 
-            m_axi_awready  [0]  =  packed_awready0  ;
-            m_axi_wready   [0]  =  packed_wready0   ;
-            m_axi_bvalid   [0]  =  packed_bvalid0   ;  
-            m_axi_bid      [0]  =  packed_bid0      ;
-            m_axi_bresp    [0]  =  packed_bresp0    ;
-            m_axi_arready  [0]  =  packed_arready0  ;    
-            m_axi_rvalid   [0]  =  packed_rvalid0   ;  
-            m_axi_rdata    [0]  =  packed_rdata0    ; 
-            m_axi_rlast    [0]  =  packed_rlast0    ; 
-            m_axi_rid      [0]  =  packed_rid0      ;
-            m_axi_rresp    [0]  =  packed_rresp0    ;
-     end
-    endcase
-// Read request + read data handling 
-    case({m_axi_araddr,(!m_axi_araddr[31] && m_axi_araddr[16])}) 
-    2'b10: begin 
-            /// read request channel 
-        m_axi_arvalid_d = m_axi_arvalid [0]  ;
-        m_axi_arvalid_d1 = 'b0 ;
-           // reaed response channel 
-        m_axi_rready_d =m_axi_rready[0]   ;
-        m_axi_rready_d1 ='b0 ;
-    end
-   2'b01: begin 
 
-            /// read request channel 
-        m_axi_arvalid_d1 =m_axi_arvalid [0]  ;
-        m_axi_arvalid_d  = 'b0 ;
-
-           // read response channel 
-        m_axi_rready_d1 =m_axi_rready  [0] ;
-        m_axi_rready_d  ='b0 ;
-   end
-   default: begin 
-       /// read request channel 
-        m_axi_arvalid_d =m_axi_arvalid [0]  ;
-        m_axi_arvalid_d1  = 'b0 ;
-           // reaed response channel 
-        m_axi_rready_d =m_axi_rready [0]  ;
-        m_axi_rready_d1  ='b0 ;
-   end 
-    endcase
- // Write request + write response +write data handling    
-     case({m_axi_awaddr[31],(!m_axi_awaddr[31] && m_axi_awaddr[16])}) 
-     2'b10: begin 
-            /// write request channel
+        /// read request channel 
+            m_axi_arvalid_d = m_axi_arvalid [0]  ;
+            m_axi_arvalid_d1 = 'b0 ;
+        // reaed response channel 
+            m_axi_rready_d =m_axi_rready[0]   ;
+            m_axi_rready_d1 ='b0 ;
+      //////////////////////////////////////////////
+                  /// write request channel
             m_axi_awvalid_d = m_axi_awvalid [0]  ; 
             m_axi_awvalid_d1  = 'b0; 
               // write data channel 
@@ -369,36 +253,9 @@ end
             m_axi_bready_d =m_axi_bready [0]  ;
             m_axi_bready_d1   ='b0 ;
      end
-    2'b01: begin 
-               /// write request channel
-            m_axi_awvalid_d1 = m_axi_awvalid [0]  ; 
-            m_axi_awvalid_d  = 'b0; 
-              // write data channel 
-            m_axi_wvalid_d1 =m_axi_wvalid [0]  ; 
-            m_axi_wvalid_d  = 'b0 ; 
-              // write rtesponse 
-            m_axi_bready_d1 =m_axi_bready [0]  ;
-            m_axi_bready_d  ='b0 ;
-     end
- default: begin 
-            /// write request channel
-            m_axi_awvalid_d = m_axi_awvalid [0]  ; 
-            m_axi_awvalid_d1 = 'b0; 
-              // write data channel 
-            m_axi_wvalid_d =m_axi_wvalid [0]  ; 
-            m_axi_wvalid_d1 = 'b0 ; 
-              // write rtesponse 
-            m_axi_bready_d =m_axi_bready [0]  ;
-            m_axi_bready_d1 ='b0 ;
- end
-
- endcase
-
-
+    endcase
 end
-   
- */     
-      
+
 
 
 
@@ -515,35 +372,7 @@ end
 
             );
 
-  // Address translation function
-  function logic [PHYSICAL_ADDR_WIDTH-1:0] translate_address(
-      input logic [VIRTUAL_ADDR_WIDTH-1:0] vaddr);
-      translate_address = vaddr & 32'h003F_FFFF;  // Mask to fit within 4MB
-  endfunction
-
-  // Apply translation for each bank
 
 
 
 endmodule 
-/*
- for (genvar ram_id = 0; ram_id < 3; ++ram_id) begin : g_ram
-        VX_AXI_if  per_ram_AXI_if( .AXI_NUM_BANKS(AXI_NUM_BANKS));
-
-
-   
-
-    
- 
-    assign      per_ram_AXI_if.m_axi_bvalid   [0]  =  packed_bvalid    ;  
-    assign      per_ram_AXI_if.m_axi_wready   [0]  =  packed_wready    ;  
-    assign      per_ram_AXI_if.m_axi_rlast    [0]  =  packed_rlast     ;
-    assign      per_ram_AXI_if.m_axi_bid      [0]  =  packed_bid       ;
-    assign      per_ram_AXI_if.m_axi_arready  [0]  =  packed_arready   ;
-    assign      per_ram_AXI_if.m_axi_rvalid   [0]  =  packed_rvalid    ;
-    assign      per_ram_AXI_if.m_axi_rdata    [0]  =  packed_rdata     ;
-    assign      per_ram_AXI_if.m_axi_awready  [0]  =  packed_awready   ;
-    assign      per_ram_AXI_if.m_axi_bresp    [0][1:0]  =  packed_bresp     ;
- end
-
-*/
