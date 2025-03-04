@@ -146,20 +146,25 @@ logic                         m_axi_bready_d1       ; // [AXI_NUM_BANKS];
 //////////////////////////////// using to from mwthod /////////////////////////////////////
 
 always @(posedge clk) begin   
-    to_r1   = 0;
-    from_r1 = 0;
-    to_r2   = 0;
-    from_r2 = 0;
     
-    if (m_axi_awaddr[31])  // 0x8000_0000
+    if (m_axi_awaddr[0][31])  // 0x8000_0000
         to_r1 = 1;
-    if (m_axi_araddr[31]) // 0x8000_0000
-        from_r1 = 1;
+      else 
+        to_r1 = 0;
 
-    if (!m_axi_awaddr[31] && m_axi_awaddr[16]) // 0x12000 and not 0x8000_0000
+    if (m_axi_araddr[0][31]) // 0x8000_0000
+        from_r1 = 1;
+      else 
+        from_r1 = 0;
+
+    if (!m_axi_awaddr[0][31] && m_axi_awaddr[0][16]) // 0x12000 and not 0x8000_0000
         to_r2 = 1;
-    if (!m_axi_araddr[31] && m_axi_araddr[16]) // 0x12000 and not 0x8000_0000
+      else
+       to_r2 = 0;
+    if (!m_axi_araddr[0][31] && m_axi_araddr[0][16]) // 0x12000 and not 0x8000_0000
         from_r2 = 1;
+        else
+        from_r2 = 0;
 end
 /////////////////////////// Try2: Only Valid & ready signal is important /////////////////////////////////////////////////////////////
 ////////////////////////////////
