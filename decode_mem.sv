@@ -93,36 +93,21 @@ localparam ADDR=22 ;
 /////////////////////////////// DECODER ////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////// 
 
-logic                         m_axi_arvalid_d      ; // [AXI_NUM_BANKS] ;
-logic                         m_axi_rready_d       ; // [AXI_NUM_BANKS] ;
-//logic [AXI_ADDR_WIDTH-1:0]    m_axi_awaddr_d       ; // [AXI_NUM_BANKS] ;
-//logic [AXI_ADDR_WIDTH-1:0]    m_axi_araddr_d       ; // [AXI_NUM_BANKS] ;
-logic                         m_axi_awvalid_d      ; // [AXI_NUM_BANKS];
-logic                         m_axi_wvalid_d       ; // [AXI_NUM_BANKS] ;
-//logic [AXI_DATA_WIDTH-1:0]    m_axi_wdata_d        ; // [AXI_NUM_BANKS];
+logic                         m_axi_arvalid_d      ; 
+logic                         m_axi_rready_d       ; 
+logic                         m_axi_awvalid_d      ; 
+logic                         m_axi_wvalid_d       ; 
+logic                         m_axi_bready_d       ;
 
-//logic [1:0]                   m_axi_rresp_d         ;// [AXI_NUM_BANKS];
-//logic [AXI_TID_WIDTH-1:0]     m_axi_awid_d          ;// [AXI_NUM_BANKS];
-//logic [AXI_DATA_WIDTH/8-1:0]  m_axi_wstrb_d         ;// [AXI_NUM_BANKS];
-logic                         m_axi_bready_d        ;// [AXI_NUM_BANKS];
-//logic                         m_axi_wlast_d         ;// [AXI_NUM_BANKS];
 
 
 
 ////////////////////////////////////////////////////////////////////////
-logic                         m_axi_arvalid_d1      ; // [AXI_NUM_BANKS]; 
-logic                         m_axi_rready_d1       ; // [AXI_NUM_BANKS]; 
-//logic [AXI_ADDR_WIDTH-1:0]    m_axi_awaddr_d1       ; // [AXI_NUM_BANKS]; 
-//logic [AXI_ADDR_WIDTH-1:0]    m_axi_araddr_d1       ; // [AXI_NUM_BANKS]; 
-logic                         m_axi_awvalid_d1      ; // [AXI_NUM_BANKS];
-logic                         m_axi_wvalid_d1       ; // [AXI_NUM_BANKS]; 
-//logic [AXI_DATA_WIDTH-1:0]    m_axi_wdata_d1        ; // [AXI_NUM_BANKS];
-
-//logic [1:0]                   m_axi_rresp_d1        ; // [AXI_NUM_BANKS];
-//logic [AXI_TID_WIDTH-1:0]     m_axi_awid_d1         ; // [AXI_NUM_BANKS];
-//logic [AXI_DATA_WIDTH/8-1:0]  m_axi_wstrb_d1        ; // [AXI_NUM_BANKS];
-logic                         m_axi_bready_d1       ; // [AXI_NUM_BANKS];
-//logic                         m_axi_wlast_d1        ; // [AXI_NUM_BANKS];
+logic                         m_axi_arvalid_d1      ;  
+logic                         m_axi_rready_d1       ;  
+logic                         m_axi_awvalid_d1      ; 
+logic                         m_axi_wvalid_d1       ;  
+logic                         m_axi_bready_d1       ; 
 
 
 
@@ -296,8 +281,8 @@ end
                 .s_axi_arcache(m_axi_arcache [0]),
                 .s_axi_arprot(m_axi_arprot [0]),            
                            //.s_axi_awaddr(m_axi_awaddr[0][PHYSICAL_ADDR_WIDTH-1:0]),  // Connect the address
-                .s_axi_araddr(m_axi_araddr[0]  & {{(AXI_ADDR_WIDTH-24){1'b0}},24'h0FF_FFFF} ),
-                .s_axi_awaddr(m_axi_awaddr [0] &  {{(AXI_ADDR_WIDTH-24){1'b0}},24'h0FF_FFFF}), 
+                .s_axi_araddr((m_axi_araddr[0] ) & {{(AXI_ADDR_WIDTH-24){1'b0}},24'h0FF_FFFF} ),
+                .s_axi_awaddr((m_axi_awaddr [0] ) &  {{(AXI_ADDR_WIDTH-24){1'b0}},24'h0FF_FFFF}), 
                 .s_axi_awvalid(m_axi_awvalid_d  ),   // shk
                 .s_axi_awcache(m_axi_awcache [0]),     
                 .s_axi_awlen(8'b0),  //8'b0  //m_axi_awlen  [0]
@@ -349,8 +334,8 @@ end
                 .s_axi_arcache(m_axi_arcache [0]),
                 .s_axi_arprot(m_axi_arprot [0]),            
                            //.s_axi_awaddr(m_axi_awaddr[0][PHYSICAL_ADDR_WIDTH-1:0]),  
-                .s_axi_araddr(m_axi_araddr[0]   &  {{(AXI_ADDR_WIDTH-24){1'b0}},24'h0FF_FFFF} ),
-                .s_axi_awaddr(m_axi_awaddr [0]  &  {{(AXI_ADDR_WIDTH-24){1'b0}},24'h0FF_FFFF}), 
+                .s_axi_araddr(m_axi_araddr[0]), // & {{(AXI_ADDR_WIDTH-24){1'b0}},24'hFF_FFFF}   ),
+                .s_axi_awaddr(m_axi_awaddr [0]), //& {{(AXI_ADDR_WIDTH-24){1'b0}},24'hFF_FFFF} ), 
                 .s_axi_awvalid(m_axi_awvalid_d1  ),   // shk
                 .s_axi_awcache(m_axi_awcache [0]),    
                 .s_axi_awid(m_axi_awid [0]),
