@@ -1,3 +1,4 @@
+
 `timescale 1ps / 1ps
 
 `include "VX_define.vh"
@@ -199,7 +200,7 @@ module tb_vortex_axi ;
         integer dst_addr     = 32'h11000;   // Destination buffer address
         integer kernel_arg   = 32'h12000;
         // decode.ram1.mem[32'h12000]=512'h00100;
-        decode.ram1.mem[24'h12000]=512'h0baadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00d000000000001040000000000000100000000000000000100;
+        decode.ram1.mem[48'h480]=512'h0baadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00d000000000001040000000000000100000000000000000100;
        // decode.ram0.mem[32'h12000]=512'hbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00dbaadf00d000000000001040000000000000100000000000000000100;
         load_kernel("instructions_corrected.txt", startup_addr);
         #5 
@@ -253,7 +254,7 @@ module tb_vortex_axi ;
         end
 
         $display("Loading kernel to address %0h...", startup_addr);
-        for (i = 0; i <90; i = i + 1) begin
+        for (i = 0; i <5; i = i + 1) begin
           //  status = $fread(kernel_data, file);  // Read 4 bytes (1 word) from the file
              $readmemh(kernel_file, kernel_data);
             // Access memory directly at the word address
@@ -272,7 +273,7 @@ module tb_vortex_axi ;
             for (i = 0; i < num_points; i = i + 1) begin
                 // Access each word at src_addr + i directly
               //  decode.ram0.mem[src_addr + i] = (nonce << i) | (nonce & ((1 << i)-1));
-              decode.ram1.mem[ src_addr + i] = nonce ;
+              decode.ram1.mem[ src_addr>>6 + i] = nonce ;
             end
             $display("Source buffer written.");
         end
@@ -283,7 +284,7 @@ module tb_vortex_axi ;
         begin
             $display("Reading destination buffer from address %0d...", dst_addr);
             for (i = 0; i < num_points; i = i + 1) begin
-                $display("Data[%0d] = %h", i, decode.ram0.mem[dst_addr[15:0] + i]);
+                $display("Data[%0d] = %h", i, decode.ram0.mem[dst_addr>>6 + i]);
             end
             $display("Destination buffer read completed.");
         end
@@ -297,7 +298,7 @@ module tb_vortex_axi ;
             $display("Verifying results...");
             for (i = 0; i < num_points; i = i + 1) begin
                 expected  = nonce ; 
-                actual = decode.ram0.mem[dst_addr[15:0] + i];
+                actual = decode.ram0.mem[dst_addr>>6 + i];
 
                 if (expected !== actual) begin
                     $display("Error at index %0d: expected = %0h, actual = %0h", i, expected, actual);
