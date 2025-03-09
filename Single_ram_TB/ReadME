@@ -1,0 +1,12 @@
+This TB have:
+
+Start_address = 0x7000 
+
+Kernal_args=0x12000
+
+Src_address = 0x10400
+
+dst_address=0x10000
+
+so that the ram size is enough to cover alll needed addresses 
+
